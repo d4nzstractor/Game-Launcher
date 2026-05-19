@@ -8,6 +8,7 @@
 -Backend (main.js)Electron’s main process; acts as the bridge to the OS and uses child_process.exec to trigger game/emulator launches.
 
 🛠️ Adding New GamesTo add your own games to the library, edit the games array located inside the <script> tag in index.html. Each game is defined as an object:
+
 { 
 
   id: "my-game", 
