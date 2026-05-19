@@ -1,3 +1,10 @@
+⚠️ CONFIGURATION NOTE:
+This launcher uses direct file paths to your game executables. To get it working on your machine:
+
+Open index.html and update the path property for each game to match its actual location on your computer.
+
+Open main.js and ensure the path of Cemu variable and the dir path for PCSX2 point to where you have installed your emulators.
+
 🎮 Game-LauncherA custom, lightweight game launcher built with Electron. This application provides a centralized and organized interface to manage and launch your local games, Steam titles, and emulated games all in one place.
 
 🚀 Key FeaturesUnified Library: View all your games in a clean, responsive, grid-based interface.Smart Search: Quickly find any game in your library using the integrated search bar.Flexible Sorting: Organize your collection by A-Z, Z-A, or "Recently Played" (using local storage).Categorized View: Optional toggle to group your games alphabetically.Multi-Platform Support:Direct Executables: Seamlessly launch local .exe files.Steam Integration: Full support for Steam shortcuts.Emulators: Pre-configured support for Cemu and PCSX2.
