@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Launcher Gamer Pro</title>
+    <style>
+        :root {
+            --bg-color: #0b0b0e;
+            --card-bg: #16161a;
+            --accent-color: #0078d4;
+            --text-main: #ffffff;
+            --text-secondary: #949494;
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 20px 40px;
+        }
+
+        header {
+            max-width: 1200px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input, select, button {
+            background: #25252b;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            color: white;
+        }
+
+        button {
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: var(--accent-color);
+        }
+
+        #container {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .letter-section {
+            max-width: 1200px;
+            margin: auto;
+            margin-bottom: 40px;
+        }
+
+        .letter-section h2 {
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 5px;
+        }
+
+        .library-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .game-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0,120,212,0.4);
+        }
+
+        .game-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .game-info {
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #noResults {
+            text-align: center;
+            display: none;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🎮 Mi Biblioteca</h1>
+    <div class="controls">
+        <button id="toggleBtn" onclick="cambiarModo()">🔠 Ver por letras</button>
+        <input type="text" id="search" placeholder="Buscar..." onkeyup="actualizar()">
+        <select id="order" onchange="actualizar()">
+            <option value="asc">A - Z</option>
+            <option value="desc">Z - A</option>
+            <option value="played">Jugado Recientemente</option>
+        </select>
+    </div>
+</header>
+
+<main id="container"></main>
+<p id="noResults">No se encontró ningún juego.</p>
+
+<script>
+const { ipcRenderer } = require('electron');
+
+let modo = "todo";
+
+const juegos = [
+    { id:"balatro", nombre:"Balatro", ruta:"C:\\Users\\daliu\\Downloads\\COZAS\\Balatro\\Balatro.exe", img:"imagenes/balatro.jpg" },
+    { id:"cities", nombre:"Cities Skylines", ruta:"C:\\Games\\Cities Skylines\\Cities.exe", img:"imagenes/cities.jpg" },
+    { id:"ff9", nombre:"Final Fantasy IX", ruta:"C:\\Games\\Final Fantasy IX\\FF9_Launcher.exe", img:"imagenes/ff9.jpg" },
+    { id:"gd", nombre:"Geometry Dash", ruta:"steam://rungameid/322170", img:"imagenes/geometry-dash-original.jpg" },
+    { id:"subnautica", nombre:"Subnautica", ruta:"C:\\Users\\daliu\\Downloads\\COZAS\\Subnautica\\Subnautica\\subnautica.exe", img:"imagenes/subnautica.jpg" },
+    { id:"stardew", nombre:"Stardew Valley", ruta:"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Stardew Valley\\StardewModdingAPI.exe", img:"imagenes/stardew.png" },
+    { id:"wow", nombre:"World of Warcraft", ruta:"C:\\Users\\daliu\\Downloads\\COZAS\\UltimoWoW esES\\Wow.exe", img:"imagenes/wotlk.png" },
+    { id:"zomboid", nombre:"Project Zomboid", ruta:"C:\\Users\\daliu\\Downloads\\COZAS\\Project Zomboid\\Project Zomboid\\ProjectZomboid64.exe", img:"imagenes/zomboid.jpg" },
+    { id:"bonk", nombre:"Megabonk", ruta:"steam://rungameid/3405340", img:"imagenes/megabonk.jpg" },
+    { id:"blasph", nombre:"Blasphemous", ruta:"steam://rungameid/774361", img:"imagenes/blasph.jpg" },
+    { id:"roblo", nombre:"Roblox", ruta:"C:\\Users\\daliu\\AppData\\Local\\Roblox\\Versions\\version-80c7b8e578f241ff\\RobloxPlayerBeta.exe", img:"imagenes/roblo.jpg" },
+    { id:"rocket", nombre:"Rocket League", ruta:"C:\\Program Files (x86)\\Epic Games\\rocketleague\\Binaries\\Win64\\RocketLeague.exe", img:"imagenes/rocket.jpg" },
+    { id:"tp", nombre:"The Legend of Zelda Twilight Princess HD", tipo:"cemu", ruta:"C:\\Users\\daliu\\Downloads\\COZAS\\Cemu_2.6\\JUEGOS\\DATA\\EUR\\GAMES\\THE LEGEND OF ZELDA Twilight Princess HD [000500001019E600]\\Base Games\\THE LEGEND OF ZELDA Twilight Princess HD [AZAP01]\\code\\Zelda.rpx", img:"imagenes/tp.jpg" },
+    { id:"ww", nombre:"The Legend of Zelda Wind Waker HD", tipo:"cemu", ruta:"C:\\Users\\daliu\\Downloads\\COZAS\\Cemu_2.6\\JUEGOS\\DATA\\EUR\\GAMES\\THE LEGEND OF ZELDA The Wind Waker HD [0005000010143600]\\Base Games\\THE LEGEND OF ZELDA The Wind Waker HD [BCZP01]\\code\\cking.rpx", img:"imagenes/ww.jpg" },
+    { id:"vp2", nombre:"Valkyrie Profile 2: Silmeria", tipo:"pcsx2", ruta:"C:\\Users\\daliu\\Downloads\\COZAS\\pcsx2-v2.1.126-windows-x64-Qt\\juegos\\VP 2 Silmeria.iso", img:"imagenes/vp2.jpeg" },
+    { id:"ass2", nombre:"Assassin's Creed II", ruta:"C:\\Program Files (x86)\\Ubisoft\\Ubisoft Game Launcher\\games\\Assassin's Creed II\\AssassinsCreedIIGame.exe", img:"imagenes/ass2.avif" },
+    { id:"gta5", nombre:"Grand Theft Auto V", ruta:"C:\\Program Files (x86)\\Epic Games\\GTAVEnhanced\\GTA5_Enhanced.exe", img:"imagenes/GTAV.jpg" },
+    { id:"golf", nombre:"Golf it", ruta:"steam://rungameid/	571740", img:"imagenes/golf.jpg" },
+    { id:"tww3", nombre:"Total War: Warhammer III", ruta:"steam://rungameid/1142710", img:"imagenes/tww3.jpg" },
+    { id:"spp", nombre:"Slay the Spire", ruta:"steam://rungameid/646570", img:"imagenes/spp.jpg" },
+    { id:"hades", nombre:"Hades", ruta:"C:\\Users\\daliu\\Downloads\\COZAS\\Hades.Battle.out.of.Hell.v1.38290.H1-P2P\\x64\\Hades.exe", img:"imagenes/hades.jpg" },
+    { id:"terraria", nombre:"Terraria", ruta:"steam://rungameid/1281930", img:"imagenes/terraria.png" },
+    { id:"elden", nombre:"Elden Ring", ruta:"C:\\Games\\Elden Ring\\Game\\eldenring.exe", img:"imagenes/elden.jpg" },
+    { id:"33", nombre:"Clair Obscur: Expedition 33", ruta:"C:\\Users\daliu\\Downloads\\COZAS\\Clair Obscur. Expedition 33 (2025)\\Expedition 33\\Sandfall\\Binaries\\Win64\\Expedition.exe", img:"imagenes/33.jpg" },
+];
+
+function abrirJuego(id, ruta, tipo) {
+    localStorage.setItem("last_" + id, Date.now());
+
+    // Si tiene tipo (cemu, pcsx2), mandamos objeto. Si no, mandamos ruta (string).
+    if (tipo) {
+        ipcRenderer.send("abrir-juego", { tipo, ruta });
+    } else {
+        ipcRenderer.send("abrir-juego", ruta);
+    }
+    actualizar();
+}
+
+function cambiarModo() {
+    const btn = document.getElementById("toggleBtn");
+    if (modo === "letras") {
+        modo = "todo";
+        btn.innerText = "🔠 Ver por letras";
+    } else {
+        modo = "letras";
+        btn.innerText = "📦 Ver todos los juegos";
+    }
+    actualizar();
+}
+
+function actualizar() {
+    const search = document.getElementById("search").value.toLowerCase();
+    const order = document.getElementById("order").value;
+    const container = document.getElementById("container");
+    const noResults = document.getElementById("noResults");
+
+    let lista = juegos.filter(j => j.nombre.toLowerCase().includes(search));
+
+    if (order === "asc") lista.sort((a, b) => a.nombre.localeCompare(b.nombre));
+    if (order === "desc") lista.sort((a, b) => b.nombre.localeCompare(a.nombre));
+    if (order === "played") lista.sort((a, b) => (localStorage.getItem("last_" + b.id) || 0) - (localStorage.getItem("last_" + a.id) || 0));
+
+    noResults.style.display = lista.length === 0 ? "block" : "none";
+
+    container.style.opacity = "0";
+    container.style.transform = "translateY(10px)";
+
+    setTimeout(() => {
+        container.innerHTML = "";
+        if (modo === "letras" && order !== "played" && search === "") {
+            const grupos = {};
+            lista.forEach(j => {
+                const letra = j.nombre[0].toUpperCase();
+                if (!grupos[letra]) grupos[letra] = [];
+                grupos[letra].push(j);
+            });
+            Object.keys(grupos).sort().forEach(letra => crearSeccion(letra, grupos[letra], container));
+        } else {
+            crearSeccion("Juegos", lista, container);
+        }
+        container.style.opacity = "1";
+        container.style.transform = "translateY(0px)";
+    }, 150);
+}
+
+function crearSeccion(titulo, lista, padre) {
+    const section = document.createElement("section");
+    section.className = "letter-section";
+    section.innerHTML = `<h2>${titulo}</h2>`;
+    const grid = document.createElement("div");
+    grid.className = "library-grid";
+
+    lista.forEach(j => {
+        const card = document.createElement("div");
+        card.className = "game-card";
+        card.onclick = () => abrirJuego(j.id, j.ruta, j.tipo);
+        card.innerHTML = `
+            <img src="${j.img}" onerror="this.src='https://via.placeholder.com/200x250?text=Sin+Imagen'">
+            <div class="game-info">${j.nombre}</div>
+        `;
+        grid.appendChild(card);
+    });
+    section.appendChild(grid);
+    padre.appendChild(section);
+}
+
+window.onload = actualizar;
+</script>
+</body>
+</html>
