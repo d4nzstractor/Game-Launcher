@@ -9,11 +9,17 @@
 
 🛠️ Adding New GamesTo add your own games to the library, edit the games array located inside the <script> tag in index.html. Each game is defined as an object:
 { 
+
   id: "my-game", 
+  
   nombre: "My Awesome Game", 
+
   ruta: "C:\\Games\\MyGame\\game.exe", 
+  
   img: "imagenes/cover.jpg",
+
   tipo: "cemu" // Optional: specify "cemu" or "pcsx2"
+  
 }
 
 Note: Since this launcher uses hardcoded paths, please update the ruta (path) in index.html and main.js to match the file structure on your local machine.💻 Technical StackElectron: Framework for cross-platform desktop applications.Node.js: Core application logic and system command execution.HTML5/CSS3: Modern, dark-themed user interface.🚀 Getting StartedClone the repository:Bashgit clone [your-repository-url]
