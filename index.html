@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Launcher Gamer Pro</title>
+    <title>My Gamer Launcher Pro</title>
+
     <style>
         :root {
             --bg-color: #0b0b0e;
@@ -106,137 +107,162 @@
         }
     </style>
 </head>
+
 <body>
 
 <header>
-    <h1>🎮 Mi Biblioteca</h1>
+    <h1>🎮 My Library</h1>
+
     <div class="controls">
-        <button id="toggleBtn" onclick="cambiarModo()">🔠 Ver por letras</button>
-        <input type="text" id="search" placeholder="Buscar..." onkeyup="actualizar()">
-        <select id="order" onchange="actualizar()">
+        <button id="toggleBtn" onclick="changeMode()">🔠 View by letters</button>
+
+        <input type="text" id="search" placeholder="Search..." onkeyup="update()">
+
+        <select id="order" onchange="update()">
             <option value="asc">A - Z</option>
             <option value="desc">Z - A</option>
-            <option value="played">Jugado Recientemente</option>
+            <option value="played">Recently Played</option>
         </select>
     </div>
 </header>
 
 <main id="container"></main>
-<p id="noResults">No se encontró ningún juego.</p>
+<p id="noResults">No games found.</p>
 
 <script>
-const { ipcRenderer } = require('electron');
+const { ipcRenderer } = require("electron");
 
-let modo = "todo";
+let mode = "all";
 
-const juegos = [
-    { id:"balatro", nombre:"Balatro", ruta:"C:\\Users\\daliu\\Downloads\\COZAS\\Balatro\\Balatro.exe", img:"imagenes/balatro.jpg" },
-    { id:"cities", nombre:"Cities Skylines", ruta:"C:\\Games\\Cities Skylines\\Cities.exe", img:"imagenes/cities.jpg" },
-    { id:"ff9", nombre:"Final Fantasy IX", ruta:"C:\\Games\\Final Fantasy IX\\FF9_Launcher.exe", img:"imagenes/ff9.jpg" },
-    { id:"gd", nombre:"Geometry Dash", ruta:"steam://rungameid/322170", img:"imagenes/geometry-dash-original.jpg" },
-    { id:"subnautica", nombre:"Subnautica", ruta:"C:\\Users\\daliu\\Downloads\\COZAS\\Subnautica\\Subnautica\\subnautica.exe", img:"imagenes/subnautica.jpg" },
-    { id:"stardew", nombre:"Stardew Valley", ruta:"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Stardew Valley\\StardewModdingAPI.exe", img:"imagenes/stardew.png" },
-    { id:"wow", nombre:"World of Warcraft", ruta:"C:\\Users\\daliu\\Downloads\\COZAS\\UltimoWoW esES\\Wow.exe", img:"imagenes/wotlk.png" },
-    { id:"zomboid", nombre:"Project Zomboid", ruta:"C:\\Users\\daliu\\Downloads\\COZAS\\Project Zomboid\\Project Zomboid\\ProjectZomboid64.exe", img:"imagenes/zomboid.jpg" },
-    { id:"bonk", nombre:"Megabonk", ruta:"steam://rungameid/3405340", img:"imagenes/megabonk.jpg" },
-    { id:"blasph", nombre:"Blasphemous", ruta:"steam://rungameid/774361", img:"imagenes/blasph.jpg" },
-    { id:"roblo", nombre:"Roblox", ruta:"C:\\Users\\daliu\\AppData\\Local\\Roblox\\Versions\\version-80c7b8e578f241ff\\RobloxPlayerBeta.exe", img:"imagenes/roblo.jpg" },
-    { id:"rocket", nombre:"Rocket League", ruta:"C:\\Program Files (x86)\\Epic Games\\rocketleague\\Binaries\\Win64\\RocketLeague.exe", img:"imagenes/rocket.jpg" },
-    { id:"tp", nombre:"The Legend of Zelda Twilight Princess HD", tipo:"cemu", ruta:"C:\\Users\\daliu\\Downloads\\COZAS\\Cemu_2.6\\JUEGOS\\DATA\\EUR\\GAMES\\THE LEGEND OF ZELDA Twilight Princess HD [000500001019E600]\\Base Games\\THE LEGEND OF ZELDA Twilight Princess HD [AZAP01]\\code\\Zelda.rpx", img:"imagenes/tp.jpg" },
-    { id:"ww", nombre:"The Legend of Zelda Wind Waker HD", tipo:"cemu", ruta:"C:\\Users\\daliu\\Downloads\\COZAS\\Cemu_2.6\\JUEGOS\\DATA\\EUR\\GAMES\\THE LEGEND OF ZELDA The Wind Waker HD [0005000010143600]\\Base Games\\THE LEGEND OF ZELDA The Wind Waker HD [BCZP01]\\code\\cking.rpx", img:"imagenes/ww.jpg" },
-    { id:"vp2", nombre:"Valkyrie Profile 2: Silmeria", tipo:"pcsx2", ruta:"C:\\Users\\daliu\\Downloads\\COZAS\\pcsx2-v2.1.126-windows-x64-Qt\\juegos\\VP 2 Silmeria.iso", img:"imagenes/vp2.jpeg" },
-    { id:"ass2", nombre:"Assassin's Creed II", ruta:"C:\\Program Files (x86)\\Ubisoft\\Ubisoft Game Launcher\\games\\Assassin's Creed II\\AssassinsCreedIIGame.exe", img:"imagenes/ass2.avif" },
-    { id:"gta5", nombre:"Grand Theft Auto V", ruta:"C:\\Program Files (x86)\\Epic Games\\GTAVEnhanced\\GTA5_Enhanced.exe", img:"imagenes/GTAV.jpg" },
-    { id:"golf", nombre:"Golf it", ruta:"steam://rungameid/	571740", img:"imagenes/golf.jpg" },
-    { id:"tww3", nombre:"Total War: Warhammer III", ruta:"steam://rungameid/1142710", img:"imagenes/tww3.jpg" },
-    { id:"spp", nombre:"Slay the Spire", ruta:"steam://rungameid/646570", img:"imagenes/spp.jpg" },
-    { id:"hades", nombre:"Hades", ruta:"C:\\Users\\daliu\\Downloads\\COZAS\\Hades.Battle.out.of.Hell.v1.38290.H1-P2P\\x64\\Hades.exe", img:"imagenes/hades.jpg" },
-    { id:"terraria", nombre:"Terraria", ruta:"steam://rungameid/1281930", img:"imagenes/terraria.png" },
-    { id:"elden", nombre:"Elden Ring", ruta:"C:\\Games\\Elden Ring\\Game\\eldenring.exe", img:"imagenes/elden.jpg" },
-    { id:"33", nombre:"Clair Obscur: Expedition 33", ruta:"C:\\Users\daliu\\Downloads\\COZAS\\Clair Obscur. Expedition 33 (2025)\\Expedition 33\\Sandfall\\Binaries\\Win64\\Expedition.exe", img:"imagenes/33.jpg" },
+const games = [
+    { id:"balatro", name:"Balatro", path:"C:\\Games\\Balatro\\Balatro.exe", img:"images/balatro.jpg" },
+    { id:"cities", name:"Cities Skylines", path:"C:\\Games\\CitiesSkylines\\Cities.exe", img:"images/cities.jpg" },
+    { id:"ff9", name:"Final Fantasy IX", path:"C:\\Games\\FinalFantasyIX\\FF9_Launcher.exe", img:"images/ff9.jpg" },
+    { id:"gd", name:"Geometry Dash", path:"steam://rungameid/322170", img:"images/geometry-dash.jpg" },
+    { id:"subnautica", name:"Subnautica", path:"C:\\Games\\Subnautica\\Subnautica.exe", img:"images/subnautica.jpg" },
+    { id:"stardew", name:"Stardew Valley", path:"C:\\Games\\StardewValley\\StardewModdingAPI.exe", img:"images/stardew.jpg" },
+    { id:"wow", name:"World of Warcraft", path:"C:\\Games\\WorldOfWarcraft\\Wow.exe", img:"images/wow.jpg" },
+    { id:"zomboid", name:"Project Zomboid", path:"C:\\Games\\ProjectZomboid\\ProjectZomboid64.exe", img:"images/zomboid.jpg" },
+    { id:"bonk", name:"Megabonk", path:"steam://rungameid/3405340", img:"images/megabonk.jpg" },
+    { id:"blasph", name:"Blasphemous", path:"steam://rungameid/774361", img:"images/blasph.jpg" },
+    { id:"roblo", name:"Roblox", path:"C:\\Games\\Roblox\\RobloxPlayerBeta.exe", img:"images/roblox.jpg" },
+    { id:"rocket", name:"Rocket League", path:"C:\\Games\\RocketLeague\\RocketLeague.exe", img:"images/rocket.jpg" },
+    { id:"tp", name:"Zelda Twilight Princess HD", type:"cemu", path:"C:\\Games\\Cemu\\ZeldaTP\\game.rpx", img:"images/tp.jpg" },
+    { id:"ww", name:"Zelda Wind Waker HD", type:"cemu", path:"C:\\Games\\Cemu\\WindWaker\\game.rpx", img:"images/ww.jpg" },
+    { id:"vp2", name:"Valkyrie Profile 2", type:"pcsx2", path:"D:\\Games\\PS2\\VP2.iso", img:"images/vp2.jpg" },
+    { id:"ass2", name:"Assassin's Creed II", path:"C:\\Games\\Ubisoft\\AC2\\AC2.exe", img:"images/ac2.jpg" },
+    { id:"gta5", name:"Grand Theft Auto V", path:"C:\\Games\\GTAV\\GTA5.exe", img:"images/gta5.jpg" },
+    { id:"golf", name:"Golf It", path:"steam://rungameid/571740", img:"images/golf.jpg" },
+    { id:"tww3", name:"Total War: Warhammer III", path:"steam://rungameid/1142710", img:"images/tww3.jpg" },
+    { id:"spp", name:"Slay the Spire", path:"steam://rungameid/646570", img:"images/spp.jpg" },
+    { id:"hades", name:"Hades", path:"C:\\Games\\Hades\\Hades.exe", img:"images/hades.jpg" },
+    { id:"terraria", name:"Terraria", path:"steam://rungameid/1281930", img:"images/terraria.jpg" },
+    { id:"elden", name:"Elden Ring", path:"C:\\Games\\EldenRing\\eldenring.exe", img:"images/elden.jpg" },
+    { id:"33", name:"Clair Obscur: Expedition 33", path:"C:\\Games\\Expedition33\\Expedition.exe", img:"images/expedition33.jpg" }
 ];
 
-function abrirJuego(id, ruta, tipo) {
+function openGame(id, path, type) {
     localStorage.setItem("last_" + id, Date.now());
 
-    // Si tiene tipo (cemu, pcsx2), mandamos objeto. Si no, mandamos ruta (string).
-    if (tipo) {
-        ipcRenderer.send("abrir-juego", { tipo, ruta });
+    if (type) {
+        ipcRenderer.send("open-game", { type, path });
     } else {
-        ipcRenderer.send("abrir-juego", ruta);
+        ipcRenderer.send("open-game", path);
     }
-    actualizar();
+
+    update();
 }
 
-function cambiarModo() {
+function changeMode() {
     const btn = document.getElementById("toggleBtn");
-    if (modo === "letras") {
-        modo = "todo";
-        btn.innerText = "🔠 Ver por letras";
+
+    if (mode === "letters") {
+        mode = "all";
+        btn.innerText = "🔠 View by letters";
     } else {
-        modo = "letras";
-        btn.innerText = "📦 Ver todos los juegos";
+        mode = "letters";
+        btn.innerText = "📦 View all games";
     }
-    actualizar();
+
+    update();
 }
 
-function actualizar() {
+function update() {
     const search = document.getElementById("search").value.toLowerCase();
     const order = document.getElementById("order").value;
     const container = document.getElementById("container");
     const noResults = document.getElementById("noResults");
 
-    let lista = juegos.filter(j => j.nombre.toLowerCase().includes(search));
+    let list = games.filter(g => g.name.toLowerCase().includes(search));
 
-    if (order === "asc") lista.sort((a, b) => a.nombre.localeCompare(b.nombre));
-    if (order === "desc") lista.sort((a, b) => b.nombre.localeCompare(a.nombre));
-    if (order === "played") lista.sort((a, b) => (localStorage.getItem("last_" + b.id) || 0) - (localStorage.getItem("last_" + a.id) || 0));
+    if (order === "asc") list.sort((a,b)=>a.name.localeCompare(b.name));
+    if (order === "desc") list.sort((a,b)=>b.name.localeCompare(a.name));
+    if (order === "played") {
+        list.sort((a,b)=>
+            (localStorage.getItem("last_"+b.id)||0) -
+            (localStorage.getItem("last_"+a.id)||0)
+        );
+    }
 
-    noResults.style.display = lista.length === 0 ? "block" : "none";
+    noResults.style.display = list.length ? "none" : "block";
 
     container.style.opacity = "0";
     container.style.transform = "translateY(10px)";
 
     setTimeout(() => {
         container.innerHTML = "";
-        if (modo === "letras" && order !== "played" && search === "") {
-            const grupos = {};
-            lista.forEach(j => {
-                const letra = j.nombre[0].toUpperCase();
-                if (!grupos[letra]) grupos[letra] = [];
-                grupos[letra].push(j);
+
+        if (mode === "letters" && order !== "played" && search === "") {
+            const groups = {};
+
+            list.forEach(g => {
+                const letter = g.name[0].toUpperCase();
+                if (!groups[letter]) groups[letter] = [];
+                groups[letter].push(g);
             });
-            Object.keys(grupos).sort().forEach(letra => crearSeccion(letra, grupos[letra], container));
+
+            Object.keys(groups).sort().forEach(letter => {
+                createSection(letter, groups[letter], container);
+            });
+
         } else {
-            crearSeccion("Juegos", lista, container);
+            createSection("Games", list, container);
         }
+
         container.style.opacity = "1";
-        container.style.transform = "translateY(0px)";
+        container.style.transform = "translateY(0)";
     }, 150);
 }
 
-function crearSeccion(titulo, lista, padre) {
+function createSection(title, list, parent) {
     const section = document.createElement("section");
     section.className = "letter-section";
-    section.innerHTML = `<h2>${titulo}</h2>`;
+
+    section.innerHTML = `<h2>${title}</h2>`;
+
     const grid = document.createElement("div");
     grid.className = "library-grid";
 
-    lista.forEach(j => {
+    list.forEach(g => {
         const card = document.createElement("div");
         card.className = "game-card";
-        card.onclick = () => abrirJuego(j.id, j.ruta, j.tipo);
+
+        card.onclick = () => openGame(g.id, g.path, g.type);
+
         card.innerHTML = `
-            <img src="${j.img}" onerror="this.src='https://via.placeholder.com/200x250?text=Sin+Imagen'">
-            <div class="game-info">${j.nombre}</div>
+            <img src="${g.img}" onerror="this.src='https://via.placeholder.com/200x250?text=No+Image'">
+            <div class="game-info">${g.name}</div>
         `;
+
         grid.appendChild(card);
     });
+
     section.appendChild(grid);
-    padre.appendChild(section);
+    parent.appendChild(section);
 }
 
-window.onload = actualizar;
+window.onload = update;
 </script>
+
 </body>
 </html>
