@@ -5,6 +5,11 @@ Open index.html and update the path property for each game to match its actual l
 
 Open main.js and ensure the path of Cemu variable and the dir path for PCSX2 point to where you have installed your emulators.
 
+Install dependencies (cmd):bashnpm install
+Launch the application (cmd):bashnpm start
+
+YOU CAN ALSO INSTALL A LOCAL APP WITH ELECTRON LAUNCHER, BUT THIS IS JUST LOCAL, I'M POSTING SOLUTIONS FOR EVERYONE, BUT IT'S EASY, JUST TAKE A SCREENSHOOT OF THE PROJECT AND TELL CHATGPT THAT YOU WANT TO INSTALL ELECTRON WITH A LOCAL APP IN YOUR DESKTOP
+
 GAMES ARE NOT INCLUDED, IF YOU SEE SOME GAMES, THESE ARE MY EXAMPLES.
 
 🎮 Game-LauncherA custom, lightweight game launcher built with Electron. This application provides a centralized and organized interface to manage and launch your local games, Steam titles, and emulated games all in one place.
@@ -32,6 +37,5 @@ GAMES ARE NOT INCLUDED, IF YOU SEE SOME GAMES, THESE ARE MY EXAMPLES.
   
 }
 
-Note: Since this launcher uses hardcoded paths, please update the ruta (path) in index.html and main.js to match the file structure on your local machine.💻 Technical StackElectron: Framework for cross-platform desktop applications.Node.js: Core application logic and system command execution.HTML5/CSS3: Modern, dark-themed user interface.🚀 Getting StartedClone the repository:Bashgit clone [your-repository-url]
-Install dependencies:Bashnpm install
-Launch the application:Bashnpm start
+Note: Since this launcher uses hardcoded paths, please update the path in index.html and main.js to match the file structure on your local machine.💻 Technical StackElectron: Framework for cross-platform desktop applications.Node.js: Core application logic and system command execution.HTML5/CSS3: Modern, dark-themed user interface.🚀 Getting StartedClone the repository:Bashgit clone [your-repository-url]
+
